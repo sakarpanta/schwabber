@@ -15,6 +15,7 @@ from schwabber.config import Settings
 from schwabber.errors import AppError, InvalidRequest, SchwabReauthRequired
 from schwabber.providers.schwab import create_schwab_provider
 from schwabber.providers.sec import HttpSecProvider
+from schwabber.rate_limit import TokenBucket
 from schwabber.services.market import MarketService
 from schwabber.services.sec import SecResearchService
 
@@ -54,6 +55,11 @@ def build_app(
     app.state.settings = settings
     app.state.market_service = market_service
     app.state.sec_service = sec_service
+    app.state.authenticated_limiter = TokenBucket(
+        rate_per_second=settings.requests_per_minute / 60, capacity=10
+    )
+    app.state.invalid_auth_limiter = TokenBucket(rate_per_second=20 / 60, capacity=5)
+    app.state.last_auth_client_ip = None
 
     @app.middleware("http")
     async def request_id_middleware(request: Request, call_next):

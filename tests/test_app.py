@@ -69,3 +69,23 @@ def test_openapi_has_stable_ids_and_bearer_security() -> None:
     } <= operations
     assert "HTTPBearer" in schema["components"]["securitySchemes"]
     assert schema["servers"][0]["url"] == "http://127.0.0.1:8000"
+
+
+def test_authenticated_burst_is_limited() -> None:
+    client = TestClient(build_app(settings()))
+    headers = {"Authorization": f"Bearer {'k' * 32}"}
+    for _ in range(10):
+        assert client.get("/v1/status", headers=headers).status_code == 200
+    limited = client.get("/v1/status", headers=headers)
+    assert limited.status_code == 429
+    assert limited.headers["Retry-After"] == "1"
+
+
+def test_forwarded_ip_is_ignored_from_non_loopback_client() -> None:
+    app = build_app(settings())
+    with TestClient(app, client=("203.0.113.10", 50000)) as client:
+        response = client.get(
+            "/v1/status", headers={"X-Forwarded-For": "198.51.100.25"}
+        )
+    assert response.status_code == 401
+    assert app.state.last_auth_client_ip == "203.0.113.10"
