@@ -172,7 +172,10 @@ quota.
 - Defaults to one year of daily data. The maximum requested windows are 10
   calendar days for 1-minute data, 60 calendar days for 5-, 15-, and 30-minute
   data, 5 years for daily data, and 20 years for weekly data.
-- Returns at most 1,000 OHLCV candles and explicitly reports truncation.
+- Returns at most 500 OHLCV candles and explicitly reports truncation. The
+  lower cap keeps the normalized JSON response below the 90,000-character
+  Action budget even when timestamps and numeric values use their widest
+  expected representations.
 - Extended-hours inclusion is an explicit parameter where Schwab supports it.
 
 ### 8.4 Instruments and quote-level fundamentals
