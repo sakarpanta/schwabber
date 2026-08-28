@@ -4,6 +4,11 @@ services:
     env_file: .env
     ports:
       - "127.0.0.1:8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
     volumes:
       - schwabber-data:/data
     restart: unless-stopped
