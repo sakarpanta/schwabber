@@ -1,0 +1,27 @@
+services:
+  schwabber:
+    extends:
+      file: compose.yaml
+      service: schwabber
+    expose:
+      - "8000"
+    ports: []
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      SCHWABBER_DOMAIN: ${SCHWABBER_DOMAIN}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      schwabber:
+        condition: service_healthy
+
+volumes:
+  caddy-data:
+  caddy-config:

@@ -1,0 +1,3 @@
+{$SCHWABBER_DOMAIN} {
+    reverse_proxy schwabber:8000
+}
