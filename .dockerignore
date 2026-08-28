@@ -1,0 +1,8 @@
+.env
+.git/
+.venv/
+data/
+token.json
+**/__pycache__/
+tests/
+docs/
