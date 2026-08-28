@@ -1,8 +1,12 @@
+import asyncio
+from collections.abc import Awaitable, Callable
 from typing import Any, Protocol
 
 import httpx
 
 from schwabber.errors import ResourceNotFound, UpstreamFailure
+from schwabber.rate_limit import TokenBucket
+from schwabber.retry import retry_async
 
 TICKERS_URL = "https://www.sec.gov/files/company_tickers.json"
 SUBMISSIONS_URL = "https://data.sec.gov/submissions/CIK{cik}.json"
@@ -15,13 +19,42 @@ class SecProvider(Protocol):
     async def company_facts(self, cik: str) -> dict[str, Any]: ...
 
 
+class _TransientSecError(Exception):
+    def __init__(self, status_code: int) -> None:
+        self.status_code = status_code
+
+
 class HttpSecProvider:
-    def __init__(self, client: httpx.AsyncClient, user_agent: str) -> None:
+    def __init__(
+        self,
+        client: httpx.AsyncClient,
+        user_agent: str,
+        *,
+        sleep: Callable[[float], Awaitable[None]] = asyncio.sleep,
+    ) -> None:
         self._client = client
+        self._sleep = sleep
+        self._fair_access = TokenBucket(rate_per_second=5.0, capacity=5)
         self._headers = {"User-Agent": user_agent, "Accept": "application/json"}
 
     async def _get(self, url: str) -> dict[str, Any]:
-        response = await self._client.get(url, headers=self._headers)
+        async def attempt() -> httpx.Response:
+            wait = self._fair_access.consume("sec")
+            if wait is not None:
+                await self._sleep(float(wait))
+            response = await self._client.get(url, headers=self._headers)
+            if response.status_code == 429 or response.status_code >= 500:
+                raise _TransientSecError(response.status_code)
+            return response
+
+        try:
+            response = await retry_async(
+                attempt,
+                should_retry=lambda exc: isinstance(exc, _TransientSecError),
+                sleep=self._sleep,
+            )
+        except _TransientSecError as exc:
+            raise UpstreamFailure(f"SEC returned HTTP {exc.status_code}") from exc
         if response.status_code == 404:
             raise ResourceNotFound("SEC resource not found")
         if response.status_code >= 400:

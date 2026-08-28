@@ -33,6 +33,28 @@ async def test_factory_requires_token_file(tmp_path) -> None:
 
 
 @pytest.mark.asyncio
+async def test_quotes_retry_two_transient_failures() -> None:
+    calls = 0
+
+    class Client:
+        async def get_quotes(self, symbols):
+            nonlocal calls
+            calls += 1
+            if calls < 3:
+                response = Response({})
+                response.status_code = 503
+                return response
+            return Response({"AMD": {"quote": {"lastPrice": 1.0}}})
+
+    async def no_sleep(_: float) -> None:
+        return None
+
+    result = await SchwabMarketProvider(Client(), sleep=no_sleep).quotes(("AMD",))
+    assert result[0].last_price == 1.0
+    assert calls == 3
+
+
+@pytest.mark.asyncio
 async def test_quotes_normalize_payload() -> None:
     class Client:
         async def get_quotes(self, symbols):
