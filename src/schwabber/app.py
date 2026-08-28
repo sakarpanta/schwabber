@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 from uuid import uuid4
 
+import httpx
 from fastapi import Depends, FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
@@ -13,11 +14,15 @@ from schwabber.cache import TtlLruCache
 from schwabber.config import Settings
 from schwabber.errors import AppError, InvalidRequest, SchwabReauthRequired
 from schwabber.providers.schwab import create_schwab_provider
+from schwabber.providers.sec import HttpSecProvider
 from schwabber.services.market import MarketService
+from schwabber.services.sec import SecResearchService
 
 
 def build_app(
-    settings: Settings, market_service: MarketService | None = None
+    settings: Settings,
+    market_service: MarketService | None = None,
+    sec_service: SecResearchService | None = None,
 ) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI):
@@ -28,7 +33,15 @@ def build_app(
                 provider = None
             if provider is not None:
                 app.state.market_service = MarketService(provider, TtlLruCache())
+        if app.state.sec_service is None and settings.sec_configured:
+            client = httpx.AsyncClient(timeout=httpx.Timeout(25.0, connect=3.0))
+            app.state.sec_client = client
+            app.state.sec_service = SecResearchService(
+                HttpSecProvider(client, settings.sec_user_agent or ""), TtlLruCache()
+            )
         yield
+        if getattr(app.state, "sec_client", None) is not None:
+            await app.state.sec_client.aclose()
 
     app = FastAPI(
         title="Schwabber",
@@ -39,6 +52,7 @@ def build_app(
     )
     app.state.settings = settings
     app.state.market_service = market_service
+    app.state.sec_service = sec_service
 
     @app.middleware("http")
     async def request_id_middleware(request: Request, call_next):
@@ -87,6 +101,9 @@ def build_app(
     dependencies = [Depends(authorized)]
     app.include_router(status_router, dependencies=dependencies)
     app.include_router(market_router, dependencies=dependencies)
+    from schwabber.api.sec import router as sec_router
+
+    app.include_router(sec_router, dependencies=dependencies)
     return app
 
 
