@@ -1,5 +1,8 @@
 # Custom GPT Action Setup
 
+Complete the [Schwab developer setup](schwab-developer-setup.md), including the
+manual OAuth login, before connecting a GPT Action.
+
 1. Start Schwabber locally with Docker Compose and complete `schwabber auth login`.
 2. Publish only the HTTP port through a tunnel or reverse proxy. `ngrok http 8000`
    is suitable for local testing; use HTTPS and an access-controlled VPS for a
@@ -10,6 +13,9 @@
 5. Keep web search enabled for news. Schwabber supplies structured Schwab quotes,
    history, options, movers, market hours, plus optional SEC data; it does not
    scrape or redistribute news.
+6. Add the neutral instruction template from the
+   [Custom GPT usage guide](custom-gpt-usage.md), then adapt the research and
+   output format to your GPT.
 
 Never commit `.env`, `token.json`, or a copied OpenAPI export containing private
 hostnames. Rotate the API key if it is exposed. The service is research-only and

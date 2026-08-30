@@ -14,6 +14,10 @@ the [changelog](CHANGELOG.md) for the current release scope.
 
 ## Local setup
 
+Create and obtain approval for your own Schwab Trader API application before
+starting. The [Schwab developer setup guide](docs/schwab-developer-setup.md)
+explains the portal field mappings, callback URL, OAuth login, and token storage.
+
 ```bash
 cp .env.example .env
 openssl rand -hex 32
@@ -43,6 +47,10 @@ See `docs/gpt-action-setup.md` for the full Action workflow. When
 `SEC_USER_AGENT` is configured, the same service also exposes bounded SEC
 financials and filing metadata at `/v1/financials/{symbol}` and
 `/v1/filings/{symbol}`.
+
+See the [Custom GPT usage guide](docs/custom-gpt-usage.md) for operation
+selection, data-freshness rules, common research workflows, and a reusable
+instruction template.
 
 The API is intentionally read-only: it does not expose balances, positions,
 orders, account numbers, or news scraping. Use web search in the GPT for current

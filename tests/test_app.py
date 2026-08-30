@@ -71,6 +71,55 @@ def test_openapi_has_stable_ids_and_bearer_security() -> None:
     assert schema["servers"][0]["url"] == "http://127.0.0.1:8000"
 
 
+def test_openapi_describes_action_operations_and_parameters() -> None:
+    schema = build_app(settings()).openapi()
+    operations = {
+        operation["operationId"]: operation
+        for path in schema["paths"].values()
+        for operation in path.values()
+        if isinstance(operation, dict) and "operationId" in operation
+    }
+    expected = {
+        "get_quotes",
+        "get_price_history",
+        "get_instrument",
+        "get_option_chain",
+        "get_movers",
+        "get_market_hours",
+        "get_financials",
+        "get_filings",
+        "get_service_status",
+    }
+
+    assert expected <= operations.keys()
+    for operation_id in expected:
+        operation = operations[operation_id]
+        assert len(operation.get("description", "")) >= 40
+        for parameter in operation.get("parameters", []):
+            assert parameter.get("description"), (
+                f"{operation_id}.{parameter['name']} needs an OpenAPI description"
+            )
+
+
+def test_openapi_describes_data_freshness_and_provenance_fields() -> None:
+    schemas = build_app(settings()).openapi()["components"]["schemas"]
+    expected_fields = {
+        "CacheMeta": {"hit", "age_seconds"},
+        "ResponseMeta": {"source", "retrieved_at", "cache", "truncated"},
+        "Quote": {"quote_time", "trade_time", "is_realtime"},
+        "OptionContract": {"quote_time", "is_realtime"},
+        "FinancialFact": {"reported", "derived_from"},
+        "Filing": {"url"},
+    }
+
+    for schema_name, field_names in expected_fields.items():
+        properties = schemas[schema_name]["properties"]
+        for field_name in field_names:
+            assert properties[field_name].get("description"), (
+                f"{schema_name}.{field_name} needs an OpenAPI description"
+            )
+
+
 def test_authenticated_burst_is_limited() -> None:
     client = TestClient(build_app(settings()))
     headers = {"Authorization": f"Bearer {'k' * 32}"}

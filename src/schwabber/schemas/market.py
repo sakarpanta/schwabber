@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class Quote(BaseModel):
@@ -16,9 +16,18 @@ class Quote(BaseModel):
     low_price: float | None = None
     close_price: float | None = None
     total_volume: int | None = None
-    quote_time: datetime | None = None
-    trade_time: datetime | None = None
-    is_realtime: bool | None = None
+    quote_time: datetime | None = Field(
+        None,
+        description="Provider timestamp for the bid/ask quote, when available.",
+    )
+    trade_time: datetime | None = Field(
+        None,
+        description="Provider timestamp for the latest trade, when available.",
+    )
+    is_realtime: bool | None = Field(
+        None,
+        description="True only when the provider identifies the quote as real-time.",
+    )
 
 
 class Candle(BaseModel):
@@ -63,8 +72,14 @@ class OptionContract(BaseModel):
     theta: float | None = None
     vega: float | None = None
     rho: float | None = None
-    quote_time: datetime | None = None
-    is_realtime: bool | None = None
+    quote_time: datetime | None = Field(
+        None,
+        description="Provider timestamp for the contract quote, when available.",
+    )
+    is_realtime: bool | None = Field(
+        None,
+        description="True only when the provider identifies the quote as real-time.",
+    )
 
 
 class Mover(BaseModel):
