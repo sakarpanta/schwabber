@@ -1,7 +1,7 @@
 from datetime import date
 from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class Filing(BaseModel):
@@ -11,7 +11,7 @@ class Filing(BaseModel):
     accession_number: str
     description: str | None = None
     primary_document: str
-    url: str
+    url: str = Field(description="Direct SEC URL for the filing's primary document.")
 
 
 class FinancialFact(BaseModel):
@@ -26,8 +26,12 @@ class FinancialFact(BaseModel):
     form: str
     filed: date
     accession_number: str
-    reported: bool
-    derived_from: list[str]
+    reported: bool = Field(
+        description="True when the value comes directly from a selected SEC fact."
+    )
+    derived_from: list[str] = Field(
+        description="Metric names used to calculate the value; empty when reported."
+    )
 
 
 class FinancialPeriod(BaseModel):

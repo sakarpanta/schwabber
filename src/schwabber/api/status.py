@@ -8,7 +8,15 @@ from schwabber.schemas.common import CacheMeta, ResponseMeta, SuccessEnvelope
 router = APIRouter(prefix="/v1", tags=["service"])
 
 
-@router.get("/status", operation_id="get_service_status")
+@router.get(
+    "/status",
+    operation_id="get_service_status",
+    summary="Get service readiness",
+    description=(
+        "Return Schwabber version, cache availability, and Schwab and SEC "
+        "configuration/readiness. Use this to diagnose an Action failure."
+    ),
+)
 async def get_service_status(request: Request) -> SuccessEnvelope[dict[str, object]]:
     now = datetime.now(UTC)
     settings = request.app.state.settings
