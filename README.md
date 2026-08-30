@@ -4,6 +4,11 @@ Schwabber is a self-hosted, read-only market-data Action for a private Custom GP
 It normalizes selected Schwab Trader API responses and exposes no account, order,
 or trading operations.
 
+## Architecture
+
+See the [architecture overview](docs/architecture.md) for the provider
+boundaries, credential model, and design rationale.
+
 ## Local setup
 
 ```bash
@@ -31,8 +36,9 @@ In ChatGPT's private GPT editor, open Actions, import
 Bearer using the same `SCHWABBER_API_KEY`. Keep web search enabled for current
 news; this service does not provide or scrape news.
 
-See `docs/gpt-action-setup.md` for the full Action workflow. SEC financials and
-filings are planned after the core Schwab routes.
+See `docs/gpt-action-setup.md` for the full Action workflow. When
+`SEC_USER_AGENT` is configured, SEC financials and filing metadata are also
+available through the Action.
 
 Schwabber is research infrastructure, not investment advice, and is not affiliated
 with Charles Schwab & Co., Inc., the U.S. Securities and Exchange Commission, or
