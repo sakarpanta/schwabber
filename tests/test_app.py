@@ -23,6 +23,19 @@ def test_v1_requires_bearer_key() -> None:
     assert response.status_code == 200
 
 
+def test_status_reports_sec_readiness() -> None:
+    configured = Settings.from_mapping(
+        {
+            "SCHWABBER_API_KEY": "k" * 32,
+            "SEC_USER_AGENT": "Schwabber operator@example.com",
+        }
+    )
+    client = TestClient(build_app(configured, sec_service=object()))
+    response = client.get("/v1/status", headers={"Authorization": f"Bearer {'k' * 32}"})
+    assert response.status_code == 200
+    assert response.json()["data"]["sec"] == {"configured": True, "ready": True}
+
+
 def test_validation_errors_use_error_envelope() -> None:
     class Provider:
         async def quotes(self, symbols):

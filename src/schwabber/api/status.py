@@ -19,7 +19,10 @@ async def get_service_status(request: Request) -> SuccessEnvelope[dict[str, obje
             "configured": settings.schwab_configured,
             "ready": request.app.state.market_service is not None,
         },
-        "sec": {"configured": settings.sec_configured, "ready": False},
+        "sec": {
+            "configured": settings.sec_configured,
+            "ready": request.app.state.sec_service is not None,
+        },
     }
     return SuccessEnvelope(
         data=data,
