@@ -9,6 +9,9 @@ or trading operations.
 See the [architecture overview](docs/architecture.md) for the provider
 boundaries, credential model, and design rationale.
 
+See the [roadmap](ROADMAP.md) for planned provider and research extensions, and
+the [changelog](CHANGELOG.md) for the current release scope.
+
 ## Local setup
 
 ```bash
