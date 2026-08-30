@@ -48,6 +48,7 @@ def build_app(
         version="0.1.0",
         docs_url=None,
         redoc_url=None,
+        servers=[{"url": settings.public_base_url}],
         lifespan=lifespan,
     )
     app.state.settings = settings

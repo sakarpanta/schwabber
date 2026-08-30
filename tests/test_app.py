@@ -55,3 +55,4 @@ def test_openapi_has_stable_ids_and_bearer_security() -> None:
         "get_service_status",
     } <= operations
     assert "HTTPBearer" in schema["components"]["securitySchemes"]
+    assert schema["servers"][0]["url"] == "http://127.0.0.1:8000"

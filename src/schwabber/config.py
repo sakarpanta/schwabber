@@ -21,6 +21,7 @@ class Settings:
     refresh_token_warn_age_days: int
     requests_per_minute: int
     log_level: str
+    public_base_url: str
     sec_user_agent: str | None = None
 
     @property
@@ -60,6 +61,9 @@ class Settings:
             refresh_token_warn_age_days=warn_age,
             requests_per_minute=rpm,
             log_level=values.get("SCHWABBER_LOG_LEVEL", "INFO"),
+            public_base_url=values.get(
+                "SCHWABBER_PUBLIC_BASE_URL", "http://127.0.0.1:8000"
+            ).rstrip("/"),
             sec_user_agent=values.get("SEC_USER_AGENT") or None,
         )
 
