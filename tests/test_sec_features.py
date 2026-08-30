@@ -4,7 +4,7 @@ import pytest
 
 from schwabber.cache import TtlLruCache
 from schwabber.providers.sec import HttpSecProvider
-from schwabber.sec_normalizer import normalize_filings
+from schwabber.sec_normalizer import normalize_filings, normalize_financials
 from schwabber.services.sec import SecResearchService
 
 
@@ -36,6 +36,41 @@ def test_sec_filing_normalization_builds_archive_url() -> None:
     }
     filing = normalize_filings(payload, cik="0000002488", forms={"10-Q"}, limit=1)[0]
     assert filing.url.endswith("/2488/000000248826000001/report.htm")
+
+
+def test_annual_comparatives_are_deduplicated_by_period_end() -> None:
+    def fact(fy, filed, value, accession=None):
+        return {
+            "start": f"{fy}-01-01",
+            "end": f"{fy}-12-31",
+            "val": value,
+            "accn": accession or f"a{filed}",
+            "fy": fy,
+            "fp": "FY",
+            "form": "10-K",
+            "filed": filed,
+        }
+
+    payload = {
+        "facts": {
+            "us-gaap": {
+                "Revenues": {
+                    "units": {
+                        "USD": [
+                            fact(2024, "2025-01-01", 390),
+                            fact(2025, "2026-01-01", 420),
+                            fact(2024, "2026-01-01", 390, "comparative"),
+                        ]
+                    }
+                }
+            }
+        }
+    }
+    statement = normalize_financials(
+        payload, symbol="AAPL", cik="0000320193", period_type="annual", count=5
+    )
+    assert len(statement.periods) == 2
+    assert [period.fiscal_year for period in statement.periods] == [2025, 2024]
 
 
 @pytest.mark.asyncio

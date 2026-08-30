@@ -113,7 +113,7 @@ def normalize_financials(
                     or not isinstance(item.get("val"), (int, float))
                 ):
                     continue
-                key = (item.get("fy"), fp, end)
+                key = (fp, end)
                 fact = FinancialFact(
                     value=float(item["val"]),
                     taxonomy=taxonomy,
@@ -130,14 +130,27 @@ def normalize_financials(
                     derived_from=[],
                 )
                 old = groups[key].get(metric)
-                if old is None or filed > old.filed:
+                matches_period_year = (
+                    period_type == "annual" and item.get("fy") == end.year
+                )
+                old_matches_period_year = (
+                    old is not None and old.fiscal_year == end.year
+                )
+                if (
+                    old is None
+                    or (matches_period_year and not old_matches_period_year)
+                    or (
+                        matches_period_year == old_matches_period_year
+                        and filed > old.filed
+                    )
+                ):
                     groups[key][metric] = fact
     periods = []
-    for (fy, fp, end), metrics in groups.items():
+    for (fp, end), metrics in groups.items():
         anchor = max(metrics.values(), key=lambda f: f.filed)
         periods.append(
             FinancialPeriod(
-                fiscal_year=fy,
+                fiscal_year=anchor.fiscal_year,
                 fiscal_period=fp,
                 period_end=end,
                 form=anchor.form,
