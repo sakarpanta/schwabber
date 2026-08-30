@@ -1,5 +1,6 @@
 from fastapi.testclient import TestClient
 
+from schwabber import __version__
 from schwabber.app import build_app
 from schwabber.cache import TtlLruCache
 from schwabber.config import Settings
@@ -52,6 +53,7 @@ def test_validation_errors_use_error_envelope() -> None:
 
 def test_openapi_has_stable_ids_and_bearer_security() -> None:
     schema = build_app(settings()).openapi()
+    assert schema["info"]["version"] == __version__
     operations = {
         operation["operationId"]
         for path in schema["paths"].values()

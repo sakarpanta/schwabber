@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/assets/schwabber-logo.png" alt="Schwabber logo" width="520">
+</p>
+
 # Schwabber
 
 Schwabber is a self-hosted, read-only market-data Action for a private Custom GPT.
