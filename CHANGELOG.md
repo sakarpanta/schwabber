@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.0 - Unreleased
+## 0.1.0 - 2026-08-30
 
 - Added read-only Schwab quotes, history, instruments, options, movers, and market-hours routes.
 - Added SEC CIK lookup, filing metadata, and normalized annual/quarterly financials.
