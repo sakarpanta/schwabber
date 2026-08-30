@@ -1,5 +1,9 @@
+import tomllib
+from pathlib import Path
+
 import schwabber
 
 
-def test_package_has_version() -> None:
-    assert schwabber.__version__ == "0.1.0"
+def test_project_version_matches_package() -> None:
+    project = tomllib.loads(Path("pyproject.toml").read_text())["project"]
+    assert project["version"] == schwabber.__version__

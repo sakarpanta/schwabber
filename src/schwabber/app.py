@@ -7,6 +7,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials
 
+from schwabber import __version__
 from schwabber.api.market import router as market_router
 from schwabber.api.status import router as status_router
 from schwabber.auth import bearer, require_api_key
@@ -46,7 +47,7 @@ def build_app(
 
     app = FastAPI(
         title="Schwabber",
-        version="0.1.0",
+        version=__version__,
         docs_url=None,
         redoc_url=None,
         servers=[{"url": settings.public_base_url}],
